@@ -1,14 +1,16 @@
 # SyMFM6D: Symmetry-aware Multi-directional Fusion for Multi-View 6D Object Pose Estimation
 
 This is the official source code for the paper **"SyMFM6D: Symmetry-aware Multi-directional Fusion 
-for Multi-View 6D Object Pose Estimation"** by Fabian Duffhauss et al. accepted to the 
-IEEE Robotics and Automation Letters (RA-L) 2023.
-The code allows the users to reproduce and extend the results reported in the study. 
+for Multi-View 6D Object Pose Estimation"** by Fabian Duffhauss et al., published in
+IEEE Robotics and Automation Letters (RA-L) in 2023.
+The code allows users to reproduce and extend the results reported in the study. 
 Please cite the paper when reporting, reproducing, or extending the results.
 
 
 
 ## Installation
+
+Note: SyMFM6D was developed and evaluated using Python 3.6, PyTorch 1.7.1, and CUDA 10.1. The following setup reproduces the original software environment used for the experiments. Newer dependency versions have not been systematically tested.
 
 - Install CUDA 10.1
 - Create a virtual environment with all required packages:
@@ -40,9 +42,9 @@ Please cite the paper when reporting, reproducing, or extending the results.
 ## Datasets and Models
 
 - The YCB-Video dataset can be downloaded 
-[here](https://drive.google.com/file/d/1if4VoEXNx9W3XCn0Y7Fp15B4GpcYbyYi/view?usp=sharing).
-- The MV-YCB SymMovCam dataset can be downloaded 
-[here](https://drive.google.com/file/d/16p0keTKr_UQnu7wHS8AgFIFe1GGS1qet/view?usp=share_link). 
+[here](https://rse-lab.cs.washington.edu/projects/posecnn/).
+- Samples of the MV-YCB SymMovCam dataset can be downloaded 
+[here](https://drive.google.com/file/d/1e8Lom4fJ4QtQivaIGIBCe-suTnk-UUob/view?usp=sharing). 
 Using this dataset requires the 3D models of the YCB-Video dataset which can be downloaded
 [here](https://drive.google.com/file/d/1gmcDD-5bkJfcMKLZb3zGgH_HUFbulQWu/view?usp=sharing).
 
@@ -58,7 +60,7 @@ a ResNet-34 pre-trained on ImageNet is required which can be downloaded
 Our symmetry-aware training procedure requires the rotational symmetry axes of all objects. 
 We compute them once in advance of the training by running the script 
 [find_symmetries.py](utils/find_symmetries.py) for each object. For objects with multiple 
-symmetry axes, the script needs to be ran multiple times with different initial values for 
+symmetry axes, the script needs to be run multiple times with different initial values for 
 the symmetry axis, e.g.
 ```shell script
 python utils/find_symmetries.py --obj_name 024_bowl --symmtype rotational
@@ -71,7 +73,7 @@ We also provide pre-computed symmetry axes for all objects which we used for the
 
 ## Training Models
 
-In the following, we give a few examples how to train models with our SyMFM6D approach on the different datasets.
+In the following, we give a few examples of how to train models with our SyMFM6D approach on the different datasets.
 
 
 ### Single-View Training on YCB-Video
@@ -98,7 +100,7 @@ python run.py --dataset SymMovCam --workers 4 --run_name MvYcbSymMovCam_1view_tr
 
 ### Multi-View Training on MV-YCB SymMovCam
 ```shell script
-python run.py --dataset SymMovCam --workers 4 --run_name MvYcbSymMovCam_1view_training --epochs 60 \
+python run.py --dataset SymMovCam --workers 4 --run_name MvYcbSymMovCam_3view_training --epochs 60 \
     --batch_size 3 --sift_fps_kps 1 --symmetry 1 --n_rot_sym 16 --multi_view 1 --set_views 3
 ```
 
@@ -109,7 +111,7 @@ python run.py --dataset SymMovCam --workers 4 --run_name MvYcbSymMovCam_1view_tr
 A model can be evaluated by specifying a checkpoint using `--checkpoint <name_of_checkpoint>` 
 and by adding the argument `--test`, e.g.
 ```shell script
-python run.py --dataset ycb --workers 4 --run_name YcbVideo_3views_evaluation --batch_size 3 --sift_fps_kps 1 \
+python run.py --test --dataset ycb --workers 4 --run_name YcbVideo_3views_evaluation --batch_size 3 --sift_fps_kps 1 \
     --multi_view 1 --set_views 3 --checkpoint YcbVideo_3views_checkpoint.ckpt 
 ```
 
@@ -117,7 +119,7 @@ python run.py --dataset ycb --workers 4 --run_name YcbVideo_3views_evaluation --
 
 ## Runtime
 
-We provide the runtime of our SyMFM6D approach for different number of views 
+We provide the runtime of our SyMFM6D approach for different numbers of views 
 in the following table:
 
 | Number of Views | Network Forward Time | Pose Estimation Time | Total Time |
@@ -132,8 +134,8 @@ The network forward time includes the 3D keypoint offset prediction,
 the center point offset prediction, and the prediction of semantic labels.
 The pose estimation time represents the time for applying the mean shift clustering 
 algorithm and the least-squares fitting for computing the 6D pose of a single object. 
-Please note that the usage of the symmetry-aware loss does increase the training time 
-slightly, but it does not affect the runtime. 
+Please note that the symmetry-aware loss slightly increases the training time, 
+but it does not affect the runtime. 
 The runtimes are measured using a single GPU of type NVIDIA Tesla V100 with 32 GB of memory.
 
 
@@ -165,13 +167,13 @@ the channel sizes of the image and point features of the respective layer:
 | MLP<sub>fp</sub>| 2c<sub>i</sub>, c<sub>i</sub> |
      
 The channel sizes of the MLPs in the second stage of our network in Fig. 2 of our paper
-are as followed:
+are as follows:
 
 |           MLP          |                         Channel Sizes                          | 
 | :--------------------: | :------------------------------------------------------------: |    
-| Keypoint Detection     | c<sub>i</sub> + c<sub>p</sub>, 128, 128, 128, n<sub>cls</sub>  |
-| Center Point Detection | c<sub>i</sub> + c<sub>p</sub>, 128, 128, 128, 3n<sub>kps</sub> |
-| Semantic Segmentation  | c<sub>i</sub> + c<sub>p</sub>, 128, 128, 128, 3                |
+| Keypoint Detection     | c<sub>i</sub> + c<sub>p</sub>, 128, 128, 128, 3n<sub>kps</sub> |
+| Center Point Detection | c<sub>i</sub> + c<sub>p</sub>, 128, 128, 128, 3                |
+| Semantic Segmentation  | c<sub>i</sub> + c<sub>p</sub>, 128, 128, 128, n<sub>cls</sub>  |
 
 For the output of the network architecture we set c<sub>i</sub> = c<sub>p</sub> = 64. 
 n<sub>cls</sub> is the number of classes in the used dataset, 
@@ -186,7 +188,7 @@ The code of SyMFM6D is open-sourced under the AGPL-3.0 license. See the [LICENSE
 for details. The MV-YCB SymMovCam dataset is open-sourced under the CC-BY-SA-4.0 license.
 
 For a list of other open source components included in SyMFM6D, see the
-file [3rd-party-licenses.txt](3rd-party-licenses.txt).
+file [3rd_party_licenses.txt](3rd_party_licenses.txt).
 
 
 
